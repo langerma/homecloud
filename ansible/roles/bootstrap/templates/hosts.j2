@@ -1,0 +1,18 @@
+# Hosts file -- Don't edit manually!
+#
+# {{ ansible_managed }}
+
+# IPv4
+127.0.0.1 localhost.localdomain localhost
+{% if 'address' in ansible_default_ipv4 %}
+{{ ansible_default_ipv4['address'] }} {{ ansible_fqdn }} {{ ansible_hostname }}
+{% endif %}
+# IPv6
+::1      localhost6.localdomain6  localhost6  ip6-localhost  ip6-loopback
+fe00::0  ip6-localnet
+ff00::0  ip6-mcastprefix
+ff02::1  ip6-allnodes
+ff02::2  ip6-allrouters
+{% if 'address' in ansible_default_ipv6 %}
+{{ ansible_default_ipv6['address'] }} {{ ansible_fqdn }} {{ ansible_hostname }}
+{% endif %}

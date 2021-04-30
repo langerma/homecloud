@@ -1,0 +1,19 @@
+[development]
+nomad.local ansible_port=22222
+
+[consul]
+nomad.local consul_node_role=bootstrap
+
+[nomad]
+nomad.local nomad_node_role=both
+
+[all:vars]
+ansible_host=localhost
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+ansible_user=root
+bootstrap_user=root
+consul_client_address=0.0.0.0
+consul_datacenter=local
+nomad_bootstrap_expect=1
+nomad_datacenter=local
+nomad_region=local

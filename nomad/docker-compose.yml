@@ -1,0 +1,24 @@
+services:
+  nomad:
+    container_name: nomad
+    hostname: nomad
+    domainname: local
+    image: homecloud/nomad
+    build: ../ubuntu/base
+    restart: unless-stopped
+    ports:
+      - 22222:22/tcp
+    tmpfs:
+      - /tmp
+      - /run
+      - /run/lock
+      - /var/lib/journal
+    volumes:
+      - type: bind
+        source: /sys/fs/cgroup
+        target: /sys/fs/cgroup
+        read_only: yes
+      - type: bind
+        source: ~/.ssh/authorized_keys
+        target: /root/.ssh/authorized_keys
+        read_only: yes

@@ -1,0 +1,15 @@
+---
+nomad_use_consul: yes
+nomad_bind_address: 0.0.0.0
+nomad_group_name: nomad
+
+nomad_plugins:
+  raw_exec:
+    config:
+      enabled: true
+
+nomad_telemetry: yes
+nomad_telemetry_disable_hostname: yes
+nomad_telemetry_prometheus_metrics: yes
+nomad_telemetry_publish_allocation_metrics: yes
+nomad_telemetry_publish_node_metrics: yes

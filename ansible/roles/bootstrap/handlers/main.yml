@@ -1,0 +1,6 @@
+---
+- name: reboot
+  reboot:
+
+- name: reload facts
+  setup:

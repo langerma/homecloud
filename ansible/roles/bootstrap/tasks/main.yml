@@ -1,0 +1,154 @@
+---
+- include_role:
+    name: robertdebock.bootstrap
+    # public: yes
+  vars:
+    bootstrap_wait_for_host: yes
+
+# hostname, resolver
+- name: "set ansible_fqdn"
+  set_fact:
+    ansible_fqdn: "{{ inventory_hostname }}"
+    ansible_hostname: "{{ inventory_hostname_short }}"
+  changed_when: ansible_fqdn != inventory_hostname
+  notify: reload facts
+
+- name: "install /etc/hosts"
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_virtualization_type != "docker"
+
+- include_role:
+    name: robertdebock.hostname
+  vars:
+    hostname_reboot: no
+
+- include_role:
+    name: seanho.systemd-resolved
+  # TODO: only resolv.conf cannot be written in docker
+  when: ansible_virtualization_type != "docker"
+
+# install and cleanup base packages
+- name: "reset packages marked as installed"
+  shell: |
+    apt-mark auto $(apt-mark showmanual)
+    apt-mark manual {{ bootstrap_packages | join(" ") }}
+  changed_when: False
+
+- include_role:
+    name: weareinteractive.apt
+  vars:
+    apt_upgrade: dist
+    apt_dependencies: "{{ bootstrap_packages }}"
+    apt_remove_purge: yes
+    apt_remove_recommends: yes
+    apt_remove_suggests: yes
+    apt_unattended_upgrades: no
+
+- name: "disable service orphans"
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+    masked: yes
+    force: yes
+  loop:
+    - getty@tty2.service
+    - getty@tty3.service
+    - getty@tty4.service
+    - getty@tty5.service
+    - getty@tty6.service
+    - rsyslog
+
+- name: "uninstall package orphans"
+  apt:
+    name: "{{ item }}"
+    state: absent
+    purge: yes
+  loop:
+    - cron
+    - rsyslog
+
+- name: "remove file orphans"
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/cron.d
+    - /etc/cron.daily
+    - /etc/cron.hourly
+    - /etc/cron.monthly
+    - /etc/cron.weekly
+    - /etc/crontab
+    - /etc/default/cron
+    - /etc/init.d/cron
+    - /etc/rsyslog.d
+    - /root/snap
+    - /usr/lib/firmware
+    - /var/log/auth.log
+    - /var/log/kern.log
+    - /var/log/syslog
+    - /var/spool/cron
+
+- name: "remove user orphans"
+  user:
+    name: "{{ item }}"
+    state: absent
+    remove: yes
+  loop:
+    - landscape
+    - lxd
+    - pollinate
+    - tss
+
+# core system services
+- include_role:
+    name: robertdebock.locale
+  vars:
+    locale_lang: en_US.UTF-8
+    locale_timezone: Etc/UTC
+
+- include_role:
+    name: robertdebock.haveged
+  when: ansible_virtualization_type != "docker"
+
+- include_role:
+    name: seanho.systemd-timesyncd
+  when: ansible_virtualization_type != "docker"
+
+- include_role:
+    name: devsec.hardening.os_hardening
+  vars:
+    os_auditd_enabled: '{{ ansible_virtualization_type != "docker" }}'
+
+- include_role:
+    name: devsec.hardening.ssh_hardening
+  vars:
+    ssh_allow_tcp_forwarding: "yes"
+    ssh_max_auth_retries: 6
+
+# add the initial management user
+- include_role:
+    name: GROG.management-user
+  vars:
+    management_user_list:
+      - name: root
+        comment: root
+        shell: /bin/zsh
+      - name: "{{ lookup('env', 'USER') }}"
+        comment: "{{ lookup('env', 'USER') }}"
+        shell: /bin/zsh
+        authorized_keys:
+          - key: "{{ lookup('pipe', 'ssh-add -L') }}"
+        sudo:
+          hosts: ALL
+          as: ALL
+          commands: ALL
+          nopasswd: yes
+
+- include_role:
+    name: robertdebock.python_pip

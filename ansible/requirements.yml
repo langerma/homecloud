@@ -1,0 +1,20 @@
+---
+collections:
+  - name: devsec.hardening
+roles:
+  - name: GROG.management-user
+  - name: robertdebock.bootstrap
+  - name: robertdebock.docker
+  - name: robertdebock.haveged
+  - name: robertdebock.hostname
+  - name: robertdebock.locale
+  - name: robertdebock.python_pip
+  - name: weareinteractive.apt
+
+  - name: seanho.systemd-resolved
+    src: https://github.com/ho-ansible/systemd-resolved
+    version: 1f61418
+
+  - name: seanho.systemd-timesyncd
+    src: https://github.com/ho-ansible/systemd-timesyncd
+    version: 718648c

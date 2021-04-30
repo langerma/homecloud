@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "homecloud"
+version = "0.1.0"
+description = "HomeCloud with OPNsense, Ansible, Nomad, Home Assistant and more!"
+authors = ["Benedikt Böhm"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+ansible = "^3.3.0"
+lxml = "^4.6.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
